@@ -1,125 +1,259 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hello_flutter/custom_widget.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const MyHomePage2());
+  }
+}
+
+class MyHomePage2 extends StatefulWidget {
+  const MyHomePage2({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _MyHomePageState2();
+}
+
+class _MyHomePageState2 extends State<MyHomePage2> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('CustomGesture'),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      body: const Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            'IT guys',
+            style: TextStyle(
+              fontSize: 24.0, // Thay đổi cỡ chữ
+              fontWeight: FontWeight.bold, // Đậm (tùy chọn)
+              color: Colors.blue, // Màu sắc (tùy chọn)
+            ),
+          ),
+          Expanded(
+              // Giới hạn chiều cao của ListView
+              child: ManagePeople()),
+        ],
+      ),
     );
   }
 }
 
+enum EOptions {
+  option1,
+  option2,
+  option3,
+}
+
+enum SearchType { web, image, news, shopping }
+
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class MyHomePage1 extends StatefulWidget {
+  const MyHomePage1({super.key});
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  State<MyHomePage1> createState() => _MyHomePageState1();
+}
+
+class _MyHomePageState1 extends State<MyHomePage1> {
+  final GlobalKey<FormState> _key = GlobalKey<FormState>();
+
+  Set<String> selected = {};
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("My home page 1"),
+        ),
+        body: Center(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Form(
+            key: _key,
+            child: TextFormField(
+              decoration: const InputDecoration(labelText: 'Email'),
+              onSaved: (val) => print("Form saved: $val"),
+              validator: (val) => (val == null || val.isEmpty)
+                  ? "Please enter some text"
+                  : null,
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_key.currentState!.validate()) {
+                _key.currentState!.save();
+                print('Form submitted');
+              }
+            },
+            child: const Text('Submit'),
+          ),
+          IconButton(onPressed: () => {}, icon: const Icon(Icons.delete)),
+          TextButton(
+            onPressed: () => {},
+            child: const Text('Delete'),
+          ),
+          SegmentedButton(
+            segments: const [
+              ButtonSegment(label: Text('Option1'), value: 'option1'),
+              ButtonSegment(label: Text('Option2'), value: 'option2'),
+              ButtonSegment(label: Text('Option3'), value: 'option3'),
+            ],
+            selected: selected,
+            onSelectionChanged: (val) => setState(() => selected = val),
+            emptySelectionAllowed: true,
+            multiSelectionEnabled: true,
+          ),
+          Dismissible(
+// Give it a blue background if swiped right and
+// a red background if swiped left
+            background: Container(color: Colors.blue),
+            secondaryBackground: Container(color: Colors.red),
+            onDismissed: (direction) => print("You swiped $direction"),
+            key: UniqueKey(),
+            direction: DismissDirection.horizontal,
+            child: const ListTile(title: Text('Item Title')),
+          ),
+          //const ManagePeople()
+        ])));
+  }
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var isChecked = false;
+  EOptions? selectedValue;
+  int numberOfResults = 0;
+  SearchType searchType = SearchType.web;
+
+  void _showSnackBar() {
+    final snackBar = SnackBar(
+      content: const Text("A SnackBar"),
+      action: SnackBarAction(label: "Undo", onPressed: () {}),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text("Hello Flutter"),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            const Text("Hello Flutter"),
+            const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: TextField(
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    hintText: 'you@email.com',
+                    icon: Icon(Icons.contact_mail),
+                  ),
+                )),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                decoration: InputDecoration(
+                    labelText: "Password", icon: Icon(Icons.password)),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                inputFormatters: <TextInputFormatter>[
+                  LengthLimitingTextInputFormatter(16),
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                ],
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                    labelText: "Credit Card", icon: Icon(Icons.phone_android)),
+              ),
             ),
+            Switch(
+                value: isChecked,
+                onChanged: (bool? val) {
+                  setState(() {
+                    isChecked = val!;
+                  });
+                }),
+            Text(isChecked ? 'Checked' : 'Unchecked'),
+            Radio<EOptions>(
+                value: EOptions.option1,
+                groupValue: selectedValue,
+                onChanged: (EOptions? val) {
+                  setState(() {
+                    selectedValue = val;
+                  });
+                }),
+            Radio<EOptions>(
+                value: EOptions.option2,
+                groupValue: selectedValue,
+                onChanged: (EOptions? val) {
+                  setState(() {
+                    selectedValue = val;
+                  });
+                }),
+            Radio<EOptions>(
+                value: EOptions.option3,
+                groupValue: selectedValue,
+                onChanged: (EOptions? val) {
+                  setState(() {
+                    selectedValue = val;
+                  });
+                }),
+            Text('Selected value: $selectedValue'),
+            Slider(
+              label: numberOfResults.toString(),
+              min: 0.0,
+              max: 100.0,
+              divisions: 10,
+              value: numberOfResults.toDouble(),
+              onChanged: (val) {
+                setState(() => numberOfResults = val.round());
+              },
+            ),
+            DropdownButton(
+                value: searchType,
+                items: const [
+                  DropdownMenuItem(value: SearchType.web, child: Text('Web')),
+                  DropdownMenuItem(
+                      value: SearchType.image, child: Text('Image')),
+                  DropdownMenuItem(value: SearchType.news, child: Text('News')),
+                  DropdownMenuItem(
+                      value: SearchType.shopping, child: Text('Shopping'))
+                ],
+                onChanged: (val) {
+                  setState(() => searchType = val!);
+                }),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: FloatingActionButton(onPressed: _showSnackBar),
     );
   }
 }
